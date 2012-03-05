@@ -58,7 +58,7 @@ class Basecamp(object):
         """
         This will return the information for the referenced company.
         """
-        path = '/contacts/company/%u' % company_id
+        path = '/companies/%u.xml' % company_id
         return self._request(path)
 
     def file_categories(self, project_id):
@@ -66,7 +66,7 @@ class Basecamp(object):
         This will return an alphabetical list of all file categories in the
         referenced project.
         """
-        path = '/projects/%u/attachment_categories' % project_id
+        path = '/projects/%u/categories.xml?type=attachment' % project_id
         return self._request(path)
 
     def message_categories(self, project_id):
@@ -74,39 +74,57 @@ class Basecamp(object):
         This will return an alphabetical list of all message categories in the
         referenced project.
         """
-        path = '/projects/%u/post_categories' % project_id
+        path = '/projects/%u/categories.xml?type=post' % project_id
         return self._request(path)
 
     def people(self, company_id):
         """
-        This will return all of the people in the given company. If a project
-        id is given, it will be used to filter the set of people that are
-        returned to include only those that can access the given project.
+        This will return all of the people in the given company. 
         """
-        path = '/contacts/people/%u' % company_id
+        path = '/companies/%u/people.xml' % company_id
         return self._request(path)
 
-    def people_per_project(self, project_id, company_id):
+    def people_per_project(self, project_id):
         """
-        This will return all of the people in the given company that can
-        access the given project.
+        This will return all of the people in the given project. 
         """
-        path = '/projects/%u/contacts/people/%u' % (project_id, company_id)
+        path = '/projects/%u/people.xml' % (project_id, company_id)
         return self._request(path)
 
     def person(self, person_id):
         """
         This will return information about the referenced person.
         """
-        path = '/contacts/person/%u' % person_id
+        path = '/people/%u.xml' % person_id
         return self._request(path)
+
+    # ---------------------------------------------------------------- #
+    # Projects 
+
+    # Messages
 
     def projects(self):
         """
         This will return a list of all active, on-hold, and archived projects
         that you have access to. The list is not ordered.
         """
-        path = '/project/list'
+        path = '/projects.xml'
+        return self._request(path)
+
+    def project_count(self):
+        """
+        This will return a count of all projects, by project status. 
+        If there are no projects with a particular status, that status entry
+        will be omitted from the report
+        """
+        path = '/projects/count.xml'
+        return self._request(path)
+
+    def project(self, project_id):
+        """
+        This will return a single project identified by its integer ID
+        """
+        path = '/projects/%u.xml' % project_id
         return self._request(path)
 
     # ---------------------------------------------------------------- #
