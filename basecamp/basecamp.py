@@ -60,6 +60,25 @@ class Basecamp(object):
         """
         path = '/companies/%u.xml' % company_id
         return self._request(path)
+    
+    def companies(self):
+        """
+        This will return a list of all companies visible to the 
+        requesting user.
+        """
+        path = '/companies.xml' 
+        return self._request(path)
+
+    def companies_per_project(self, project_id):
+        """
+        This will return a list of all companies associated with the gieven 
+        project.
+        """
+        path = '/companies/%u/companies.xml' % project_id
+        return self._request(path)
+
+    # ---------------------------------------------------------------- #
+    # Categories 
 
     def file_categories(self, project_id):
         """
