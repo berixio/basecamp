@@ -76,8 +76,27 @@ class Basecamp(object):
         """
         path = '/projects/%u/categories.xml?type=post' % project_id
         return self._request(path)
+    
+    # ---------------------------------------------------------------- #
+    # People 
+
+    def me(self):
+        """
+        This will return the currently logged in person (you)
+        """
+        path = '/me.xml'
+        return self._request(path)
 
     def people(self, company_id):
+        """
+        This will return all of the people visible to (and including) the
+        requesting user.. 
+        """
+        path = '/people.xml' % company_id
+        return self._request(path)
+
+
+    def people_per_company(self, company_id):
         """
         This will return all of the people in the given company. 
         """
@@ -100,8 +119,6 @@ class Basecamp(object):
 
     # ---------------------------------------------------------------- #
     # Projects 
-
-    # Messages
 
     def projects(self):
         """
