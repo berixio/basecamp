@@ -136,7 +136,7 @@ class Basecamp():
         """
         This will return all of the people in the given project. 
         """
-        path = '/projects/%u/people.xml' % (project_id, company_id)
+        path = '/projects/%u/people.xml' % project_id
         return self._request(path)
 
     def person(self, person_id):
@@ -299,8 +299,8 @@ class Basecamp():
         to fetch the most recent comments for the todo item with an 
         id of 1, you would use the path: /todo_items/1/comments.xml. 
         """
-        path = '/%u/%u/comments.xml' % message_id
-        return self._request(path, req)
+        path = '/%s/%u/comments.xml' % (resource, resource_id)
+        return self._request(path)
 
     def comment(self, comment_id):
         """
@@ -316,7 +316,7 @@ class Basecamp():
         or todo_items. For example, to create a comment for the milestone 
         with an ID of 1, you would use the path: /milestones/1/comments.xml.
         """
-        path = '/%u/%u/comments.xml'
+        path = '/%s/%u/comments.xml' % (resource, resource_id)
         #req = ET.Element('request')
         req = ET.Element('comment')
         #comment = ET.SubElement(req, 'comment')
@@ -350,28 +350,28 @@ class Basecamp():
     def todo_lists(self):
         """
         Returns a list of todo-list records, with todo-item records that 
-        are assigned to the given “responsible party”. If no responsible 
+        are assigned to the given "responsible party". If no responsible 
         party is given, the current user is assumed to be the responsible 
         party. The responsible party may be changed by setting the 
-        “responsible_party” query parameter to a blank string 
+        "responsible_party" query parameter to a blank string 
         (for unassigned items), a person-id, or a company-id prefixed by 
-        a “c” (e.g., c1234).
+        a "c" (e.g., c1234).
         """
         path = '/todo_lists.xml' 
-        return self._request(path, req)
+        return self._request(path)
 
-    def todo_lists(self, project_id, filter):
+    def todo_lists_per_project(self, project_id, filter):
         """
         Returns a list of todo-list records that are in the given project. 
         By default, all lists are returned, but you can filter the result 
-        by giving the “filter” query parameter, set to “all” (the default), 
-        “pending” (for lists with uncompleted items), and “finished” 
+        by giving the "filter" query parameter, set to "all" (the default), 
+        "pending" (for lists with uncompleted items), and "finished" 
         (for lists that have no uncompleted items). The lists will be returned 
         in priority order, as determined by their ordering. 
-        (See the “reorder lists” action.)
+        (See the "reorder lists" action.)
         """
-        path = '/projects/%u/todo_lists.xml?filter=%u' % (project_id, filter)
-        return self._request(path, req)
+        path = '/projects/%u/todo_lists.xml?filter=%s' % (project_id, filter)
+        return self._request(path)
 
     def todo_list(self, list_id):
         """
@@ -433,10 +433,10 @@ class Basecamp():
     def items(self, list_id):
         """
         Returns all todo item records for a single todo list. This is almost 
-        the same as the “Get list” action, except it does not return any 
+        the same as the "Get list" action, except it does not return any 
         information about the list itself. The items are returned in priority 
         order, as defined by how they were ordered either in the web UI, or 
-        via the “Reorder items” action.
+        via the "Reorder items" action.
         """
         path = '/todo_lists/%u/todo_items.xml' % list_id
         return self._request(path)
@@ -468,12 +468,12 @@ class Basecamp():
             due_at=None):
         """
         Creates a new todo item record for the given list. The new record 
-        begins its life in the “uncompleted” state. (See the “Complete” and 
-        “Uncomplete” actions.) It is added at the bottom of the given list. 
+        begins its life in the "uncompleted" state. (See the "Complete" and 
+        "Uncomplete" actions.) It is added at the bottom of the given list. 
         If a person is responsible for the item, give their id as the party_id 
-        value. If a company is responsible, prefix their company id with a ‘c’ 
+        value. If a company is responsible, prefix their company id with a 'c' 
         and use that as the party_id value. If the item has a person as the 
-        responsible party, you can also use the “notify” key to indicate 
+        responsible party, you can also use the "notify" key to indicate 
         whether an email should be sent to that person to tell them about the 
         assignment.
         """
