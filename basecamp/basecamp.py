@@ -28,10 +28,11 @@ Usage:
     # See the ElementTree website for more information on how to use it.
 """
 
-#import base64
 import requests
-#import urllib2
 import elementtree.ElementTree as ET
+
+class BasecampError(Exception):
+    pass
 
 class Basecamp():
 
@@ -52,14 +53,20 @@ class Basecamp():
             data = ET.tostring(data)
         url = self.baseURL + path
         if post:
-            return requests.post(url, data, auth=self.auth)
+            answer = requests.post(url, data, auth=self.auth)
         if put:
-            return requests.put(url, data, auth=self.auth)
+            answer =  requests.put(url, data, auth=self.auth)
         if delete:
-            return requests.delete(url, auth=self.auth)
-        return requests.get(url, auth=self.auth)
-        #req = urllib2.Request(url=self.baseURL + path, data=data)
-        #return self.opener.open(req).read()
+            answer = requests.delete(url, auth=self.auth)
+        answer = requests.get(url, auth=self.auth)
+        
+        if (post and answer.status_code != 201) or answer.status_code != 200:
+            self.last_error = answer.text
+            raise BasecampError()
+        return answer
+
+    def get_last_error(self):
+        return self.last_error
 
     # ---------------------------------------------------------------- #
     # General
