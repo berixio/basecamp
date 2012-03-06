@@ -28,28 +28,38 @@ Usage:
     # See the ElementTree website for more information on how to use it.
 """
 
-import base64
-import urllib2
+#import base64
+import requests
+#import urllib2
 import elementtree.ElementTree as ET
 
-class Basecamp(object):
+class Basecamp():
 
     def __init__(self, url, username, password = "X"):
         self.baseURL = url
         if self.baseURL[-1] == '/':
             self.baseURL = self.baseURL[:-1]
         
-        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, username, password)
-        authhandler = urllib2.HTTPBasicAuthHandler(passman)
+        self.auth = (username, password)
         
-        self.opener = urllib2.build_opener(authhandler)
+        #passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        #passman.add_password(None, url, username, password)
+        #authhandler = urllib2.HTTPBasicAuthHandler(passman)
+        #self.opener = urllib2.build_opener(authhandler)
         
-    def _request(self, path, data=None):
+    def _request(self, path, data=None, put=False, post=False, delete=False, get=False):
         if isinstance(data, ET._ElementInterface):
             data = ET.tostring(data)
-        req = urllib2.Request(url=self.baseURL + path, data=data)
-        return self.opener.open(req).read()
+        url = self.baseURL + path
+        if post:
+            return requests.post(url, data, auth=self.auth)
+        if put:
+            return requests.put(url, data, auth=self.auth)
+        if delete:
+            return requests.delete(url, auth=self.auth)
+        return requests.get(url, auth=self.auth)
+        #req = urllib2.Request(url=self.baseURL + path, data=data)
+        #return self.opener.open(req).read()
 
     # ---------------------------------------------------------------- #
     # General
@@ -106,12 +116,12 @@ class Basecamp(object):
         path = '/me.xml'
         return self._request(path)
 
-    def people(self, company_id):
+    def people(self):
         """
         This will return all of the people visible to (and including) the
         requesting user.. 
         """
-        path = '/people.xml' % company_id
+        path = '/people.xml'
         return self._request(path)
 
 
@@ -164,73 +174,76 @@ class Basecamp(object):
         return self._request(path)
 
     # ---------------------------------------------------------------- #
-    # Messages and Comments
-
     # Messages
 
-    def message(self, message_ids):
+    def messages_per_project(self, project_id):
         """
-        This will return information about the referenced message. If the id
-        is given as a comma-delimited list, one record will be returned for
-        each id. In this way you can query a set of messages in a single
-        request. Note that you can only give up to 25 ids per request--more
-        than that will return an error.
+        This will return the 25 most recent messages in the given project. 
         """
-        if isinstance(message_ids, list):
-            message_ids = ','.join([int(id) for id in message_ids])
-        path = '/msg/get/%s' % message_ids
+        path = '/projects/%u/posts.xml' % project_id
         return self._request(path)
 
-    def message_archive(self, project_id, category_id=None):
+    def messages_per_category(self, project_id, category_id):
         """
-        This will return a summary record for each message in a project. If
-        you specify a category_id, only messages in that category will be
-        returned. (Note that a summary record includes only a few bits of
-        information about a post, not the complete record.)
+        This will return the 25 most recent messages in the given project 
+        for the given category.
         """
-        path = '/projects/%u/msg/archive' % project_id
-        req = ET.Element('request')
-        ET.SubElement(req, 'project-id').text = str(int(project_id))
-        if category_id is not None:
-            ET.SubElement(req, 'category-id').text = str(int(category_id))
-        return self._request(path, req)
+        path = '/projects/%u/cat/%s/posts.xml' % (project_id, category_id)
+        return self._request(path)
 
-    def message_archive_per_category(self, project_id, category_id):
+    def messages_archived(self, project_id):
         """
-        This will return a summary record for each message in a particular
-        category. (Note that a summary record includes only a few bits of
-        information about a post, not the complete record.)
+        This will return a summary for each message in the given project. 
+        Note that a summary record includes only a few bits of 
+        information about a messag, not the complete record.
         """
-        path = '/projects/%u/msg/cat/%u/archive' % (project_id, category_id)
+        path = '/projects/%u/posts/archive.xml' % project_id
+        return self._request(path)
+
+    def messages_archived_per_category(self, project_id, category_id):
+        """
+        This will return a summary for each message in the given project
+        for the given category. Note that a summary record includes 
+        only a few bits of information about a messag, 
+        not the complete record.
+        """
+        path = '/projects/%u/cat/%s/posts/archive.xml' % (
+                project_id, category_id)
+        return self._request(path)
+
+    def message(self, message_id):
+        """
+        This will return a single message record identified by its integer ID.
+        """
+        path = '/posts/%u.xml' % message_id
         return self._request(path)
 
     def _create_message_post_elem(self, category_id, title, body,
-        extended_body, use_textile=False, private=False):
+        private=False):
         post = ET.Element('post')
         ET.SubElement(post, 'category-id').text = str(int(category_id))
         ET.SubElement(post, 'title').text = str(title)
         ET.SubElement(post, 'body').text = str(body)
-        ET.SubElement(post, 'extended-body').text = str(extended_body)
-        if bool(use_textile):
-            ET.SubElement(post, 'use-textile').text = '1'
+        #ET.SubElement(post, 'extended-body').text = str(extended_body)
+        #if bool(use_textile):
+        #    ET.SubElement(post, 'use-textile').text = '1'
         if bool(private):
             ET.SubElement(post, 'private').text = '1'
         return post
 
     def create_message(self, project_id, category_id, title, body,
-        extended_body, use_textile=False, private=False, notify=None,
-        attachments=None):
+        private=False, notify=None, attachments=None):
         """
         Creates a new message, optionally sending notifications to a selected
         list of people. Note that you can also upload files using this
         function, but you need to upload the files first and then attach them.
         See the description at the top of this document for more information.
         """
-        path = '/projects/%u/msg/create' % project_id
+        path = '/projects/%u/posts.xml' % project_id
         req = ET.Element('request')
         req.append(self._create_message_post_elem(category_id, title, body,
-            extended_body, use_textile=False, private=False))
-        if notify is not None:
+            private))
+        if notify:
             for person_id in notify:
                 ET.SubElement(req, 'notify').text = str(int(person_id))
         # TODO: Implement attachments.
@@ -273,6 +286,7 @@ class Basecamp(object):
         path = '/msg/delete/%u' % message_id
         return self._request(path)
 
+    # ---------------------------------------------------------------- #
     # Comments
 
     def comments(self, message_id):
