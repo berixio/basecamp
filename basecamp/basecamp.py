@@ -430,71 +430,81 @@ class Basecamp():
     # ---------------------------------------------------------------- #
     # Items
 
-    def create_todo_item(self, list_id, content, party_id=None, notify=False):
+    def items(self, list_id):
         """
-        This call lets you add an item to an existing list. The item is added
-        to the bottom of the list. If a person is responsible for the item,
-        give their id as the party_id value. If a company is responsible,
-        prefix their company id with a 'c' and use that as the party_id value.
-        If the item has a person as the responsible party, you can use the
-        notify key to indicate whether an email should be sent to that person
-        to tell them about the assignment.
+        Returns all todo item records for a single todo list. This is almost 
+        the same as the “Get list” action, except it does not return any 
+        information about the list itself. The items are returned in priority 
+        order, as defined by how they were ordered either in the web UI, or 
+        via the “Reorder items” action.
         """
-        path = '/todos/create_item/%u' % list_id
-        req = ET.Element('request')
-        ET.SubElement(req, 'content').text = str(content)
-        if party_id is not None:
-            ET.SubElement(req, 'responsible-party').text = str(party_id)
-            ET.SubElement(req, 'notify').text = str(bool(notify)).lower()
-        return self._request(path, req)
+        path = '/todo_lists/%u/todo_items.xml' % list_id
+        return self._request(path)
 
-    def update_todo_item(self, item_id, content, party_id=None, notify=False):
+    def item(self, item_id):
         """
-        Modifies an existing item. The values work much like the "create item"
-        operation, so you should refer to that for a more detailed explanation.
+        Returns a single todo item record, given its integer ID.
         """
-        path = '/todos/update_item/%u' % item_id
-        req = ET.Element('request')
-        item = ET.Element('request')
-        ET.SubElement(item, 'content').text = str(content)
-        if party_id is not None:
-            ET.SubElement(req, 'responsible-party').text = str(party_id)
-            ET.SubElement(req, 'notify').text = str(bool(notify)).lower()
-        return self._request(path, req)
+        path = '/todo_items/%u.xml' % item_id
+        return self._request(path)
 
     def complete_todo_item(self, item_id):
         """
         Marks the specified item as "complete". If the item is already
         completed, this does nothing.
         """
-        path = '/todos/complete_item/%u' % item_id
-        return self._request(path)
+        path = '/todo_items/%u/complete.xml' % item_id
+        return self._request(path, put=True)
 
     def uncomplete_todo_item(self, item_id):
         """
         Marks the specified item as "uncomplete". If the item is already
         uncompleted, this does nothing.
         """
-        path = '/todos/uncomplete_item/%u' % item_id
+        path = '/todo_items/%u/uncomplete.xml' % item_id
         return self._request(path)
 
-    def move_todo_item(self, item_id, to):
+    def create_todo_item(self, list_id, content, party_id=None, notify=False,
+            due_at=None):
         """
-        Changes the position of an item within its parent list. It does not
-        currently support reparenting an item. Position 1 is at the top of the
-        list. Moving an item beyond the end of the list puts it at the bottom
-        of the list.
+        Creates a new todo item record for the given list. The new record 
+        begins its life in the “uncompleted” state. (See the “Complete” and 
+        “Uncomplete” actions.) It is added at the bottom of the given list. 
+        If a person is responsible for the item, give their id as the party_id 
+        value. If a company is responsible, prefix their company id with a ‘c’ 
+        and use that as the party_id value. If the item has a person as the 
+        responsible party, you can also use the “notify” key to indicate 
+        whether an email should be sent to that person to tell them about the 
+        assignment.
         """
-        path = '/todos/move_item/%u' % item_id
-        req = ET.Element('request')
-        ET.SubElement(req, 'to').text = str(int(to))
-        return self._request(path, req)
+        path = '/todo_lists/%u/todo_items.xml' % list_id
+        req = ET.Element('todo-item')
+        ET.SubElement(req, 'content').text = str(content)
+        if party_id :
+            ET.SubElement(req, 'responsible-party').text = str(party_id)
+            ET.SubElement(req, 'notify').text = str(bool(notify)).lower()
+        if due_at:
+            ET.SubElement(req, 'due-at').text = str(due_at)
+        return self._request(path, req, post=True)
+
+    def update_todo_item(self, item_id, content, party_id=None, notify=False):
+        """
+        Modifies an existing item. The values work much like the "create item"
+        operation, so you should refer to that for a more detailed explanation.
+        """
+        path = '/todo_items/%u.xml' % item_id
+        req = ET.Element('todo-item')
+        ET.SubElement(req, 'content').text = str(content)
+        if party_id is not None:
+            ET.SubElement(req, 'responsible-party').text = str(party_id)
+            ET.SubElement(req, 'notify').text = str(bool(notify)).lower()
+        return self._request(path, req, put=True)
 
     def delete_todo_item(self, item_id):
         """
         Deletes the specified item, removing it from its parent list.
         """
-        path = '/todos/delete_item/%u' % item_id
+        path = '/todo_items/%u.xml' % item_id
         return self._request(path)
 
     # ---------------------------------------------------------------- #
