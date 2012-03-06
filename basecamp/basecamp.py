@@ -219,11 +219,13 @@ class Basecamp():
         return self._request(path)
 
     def _create_message_post_elem(self, category_id, title, body,
-        private=False):
+        private=False, notify=False):
         post = ET.Element('post')
         ET.SubElement(post, 'category-id').text = str(int(category_id))
         ET.SubElement(post, 'title').text = str(title)
         ET.SubElement(post, 'body').text = str(body)
+        if notify:
+            ET.SubElement(post, 'notify-about-changes').text = '1'
         #ET.SubElement(post, 'extended-body').text = str(extended_body)
         #if bool(use_textile):
         #    ET.SubElement(post, 'use-textile').text = '1'
@@ -259,10 +261,10 @@ class Basecamp():
         ##        = str(attachment['content_type'])
         ##    ET.SubElement(file_, 'original-filename').text \
         ##        = str(attachment['original_filename'])
-        return self._request(path, req)
+        return self._request(path, req, post=True)
 
     def update_message(self, message_id, category_id, title, body,
-        extended_body, use_textile=False, private=False, notify=None):
+        private=False, notify=None):
         """
         Updates an existing message, optionally sending notifications to a
         selected list of people. Note that you can also upload files using
@@ -270,86 +272,105 @@ class Basecamp():
         multipart/form-data. (See the ruby Basecamp API wrapper for an example
         of how to do this.)
         """
-        path = '/msg/update/%u' % message_id
+        path = '/posts/%u.xml' % message_id
         req = ET.Element('request')
         req.append(self._create_message_post_elem(category_id, title, body,
-            extended_body, use_textile=False, private=False))
+            private, notify))
         if notify is not None:
             for person_id in notify:
                 ET.SubElement(req, 'notify').text = str(int(person_id))
-        return self._request(path, req)
+        return self._request(path, req, put=True)
 
     def delete_message(self, message_id):
         """
         Delete the specified message from the project.
         """
-        path = '/msg/delete/%u' % message_id
-        return self._request(path)
+        path = '/posts/%u.xml' % message_id
+        return self._request(path, delete=True)
 
     # ---------------------------------------------------------------- #
     # Comments
 
-    def comments(self, message_id):
+    def comments(self, resource, resource_id):
         """
-        Return the list of comments associated with the specified message.
+        Return a list of the 50 most recent comments associated with 
+        the specified resource, where the resource named in the URL 
+        can be one of posts, milestones, or todo_items. For example, 
+        to fetch the most recent comments for the todo item with an 
+        id of 1, you would use the path: /todo_items/1/comments.xml. 
         """
-        path = '/msg/comments/%u' % message_id
-        req = ET.Element('request')
+        path = '/%u/%u/comments.xml' % message_id
         return self._request(path, req)
 
     def comment(self, comment_id):
         """
         Retrieve a specific comment by its id.
         """
-        path = '/msg/comment/%u' % comment_id
+        path = '/comments/%u.xml' % comment_id
         return self._request(path)
 
-    def create_comment(self, post_id, body):
+    def create_comment(self, resource, resource_id, body):
         """
-        Create a new comment, associating it with a specific message.
+        Create a new comment, associating it with a specific resource, 
+        where the resource named in the URL can be one of posts, milestones, 
+        or todo_items. For example, to create a comment for the milestone 
+        with an ID of 1, you would use the path: /milestones/1/comments.xml.
         """
-        path = '/msg/create_comment'
-        req = ET.Element('request')
-        comment = ET.SubElement(req, 'comment')
-        ET.SubElement(comment, 'post-id').text = str(int(post_id))
-        ET.SubElement(comment, 'body').text = str(body)
-        return self._request(path, req)
+        path = '/%u/%u/comments.xml'
+        #req = ET.Element('request')
+        req = ET.Element('comment')
+        #comment = ET.SubElement(req, 'comment')
+        #ET.SubElement(comment, 'post-id').text = str(int(post_id))
+        ET.SubElement(req, 'body').text = str(body)
+        #ET.SubElement(comment, 'body').text = str(body)
+        return self._request(path, req, post=True)
 
     def update_comment(self, comment_id, body):
         """
         Update a specific comment. This can be used to edit the content of an
         existing comment.
         """
-        path = '/msg/update_comment'
+        path = '/comments/%u.xml' % comment_id
         req = ET.Element('request')
-        ET.SubElement(req, 'comment_id').text = str(int(comment_id))
+        #ET.SubElement(req, 'comment_id').text = str(int(comment_id))
         comment = ET.SubElement(req, 'comment')
         ET.SubElement(comment, 'body').text = str(body)
-        return self._request(path, req)
+        return self._request(path, req, put=True)
 
     def delete_comment(self, comment_id):
         """
         Delete the comment with the given id.
         """
-        path = '/msg/delete_comment/%u' % comment_id
+        path = '/comments/%u.xml' % comment_id
         return self._request(path)
 
     # ---------------------------------------------------------------- #
-    # To-do Lists and Items
-
     # Lists
 
-    def todo_lists(self, project_id, complete=None):
+    def todo_lists(self):
         """
-        This will return the metadata for all of the lists in a given project.
-        You can further constrain the query to only return those lists that
-        are "complete" (have no uncompleted items) or "uncomplete" (have
-        uncompleted items remaining).
+        Returns a list of todo-list records, with todo-item records that 
+        are assigned to the given “responsible party”. If no responsible 
+        party is given, the current user is assumed to be the responsible 
+        party. The responsible party may be changed by setting the 
+        “responsible_party” query parameter to a blank string 
+        (for unassigned items), a person-id, or a company-id prefixed by 
+        a “c” (e.g., c1234).
         """
-        path = '/projects/%u/todos/lists' % project_id
-        req = ET.Element('request')
-        if complete is not None:
-            ET.SubElement(req, 'complete').text = str(bool(complete)).lower()
+        path = '/todo_lists.xml' 
+        return self._request(path, req)
+
+    def todo_lists(self, project_id, filter):
+        """
+        Returns a list of todo-list records that are in the given project. 
+        By default, all lists are returned, but you can filter the result 
+        by giving the “filter” query parameter, set to “all” (the default), 
+        “pending” (for lists with uncompleted items), and “finished” 
+        (for lists that have no uncompleted items). The lists will be returned 
+        in priority order, as determined by their ordering. 
+        (See the “reorder lists” action.)
+        """
+        path = '/projects/%u/todo_lists.xml?filter=%u' % (project_id, filter)
         return self._request(path, req)
 
     def todo_list(self, list_id):
@@ -366,8 +387,8 @@ class Basecamp():
         explicitly, or by giving it a list template id to base the new list
         off of.
         """
-        path = '/projects/%u/todos/create_list' % project_id
-        req = ET.Element('request')
+        path = '/projects/%u/todo_list.xml' % project_id
+        req = ET.Element('todo-list')
         if milestone_id is not None:
             ET.SubElement('milestone-id').text = str(milestone_id)
         if private is not None:
@@ -377,41 +398,25 @@ class Basecamp():
             ET.SubElement('name').text = str(name)
             ET.SubElement('description').text = str(description)
         if template_id is not None:
-            ET.SubElement('use-template').text = 'true'
-            ET.SubElement('template-id').text = str(int(template_id))
-        return self._request(path, req)
+            ET.SubElement('todo-list-template-id').text = str(int(template_id))
+        return self._request(path, req, post=True)
 
     def update_todo_list(self, list_id, name, description, milestone_id=None,
         private=None, tracked=None):
         """
         With this call you can alter the metadata for a list.
         """
-        path = '/todos/update_list/%u' % list_id
-        req = ET.Element('request')
-        list_ = ET.SubElement('list')
-        ET.SubElement(list_, 'name').text = str(name)
-        ET.SubElement(list_, 'description').text = str(description)
+        path = '/todo_lists/%u.xml' % list_id
+        req = ET.Element('todo-list')
+        ET.SubElement(req, 'name').text = str(name)
+        ET.SubElement(req, 'description').text = str(description)
         if milestone_id is not None:
-            ET.SubElement(list_, 'milestone_id').text = str(int(milestone_id))
+            ET.SubElement(req, 'milestone_id').text = str(int(milestone_id))
         if private is not None:
-            ET.SubElement(list_, 'private').text = str(bool(private)).lower()
+            ET.SubElement(req, 'private').text = str(bool(private)).lower()
         if tracked is not None:
-            ET.SubElement(list_, 'tracked').text = str(bool(tracked)).lower()
-        return self._request(path, req)
-
-    def move_todo_list(self, list_id, to):
-        """
-        This allows you to reposition a list relative to the other lists in
-        the project. A list with position 1 will show up at the top of the
-        page. Moving lists around lets you prioritize. Moving a list to a
-        position less than 1, or more than the number of lists in a project,
-        will force the position to be between 1 and the number of lists
-        (inclusive).
-        """
-        path = '/todos/move_list/%u' % list_id
-        req = ET.Element('request')
-        ET.SubElement(req, 'to').text = str(int(to))
-        return self._request(path, req)
+            ET.SubElement(req_, 'tracked').text = str(bool(tracked)).lower()
+        return self._request(path, req, put=True)
 
     def delete_todo_list(self, list_id):
         """
@@ -419,9 +424,10 @@ class Basecamp():
         associated with it. Use it with caution, because a deleted list cannot
         be restored!
         """
-        path = '/todos/delete_list/%u' % list_id
-        return self._request(path)
+        path = '/todo_lists/%u.xml' % list_id
+        return self._request(path, delete=True)
 
+    # ---------------------------------------------------------------- #
     # Items
 
     def create_todo_item(self, list_id, content, party_id=None, notify=False):
