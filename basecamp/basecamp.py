@@ -43,27 +43,23 @@ class Basecamp():
         
         self.auth = (username, password)
         
-        #passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        #passman.add_password(None, url, username, password)
-        #authhandler = urllib2.HTTPBasicAuthHandler(passman)
-        #self.opener = urllib2.build_opener(authhandler)
-        
     def _request(self, path, data=None, put=False, post=False, delete=False, get=False):
         if isinstance(data, ET._ElementInterface):
             data = ET.tostring(data)
         url = self.baseURL + path
         if post:
             answer = requests.post(url, data, auth=self.auth)
-        if put:
+        elif put:
             answer =  requests.put(url, data, auth=self.auth)
-        if delete:
+        elif delete:
             answer = requests.delete(url, auth=self.auth)
-        answer = requests.get(url, auth=self.auth)
+        else:
+            answer = requests.get(url, auth=self.auth)
         
         if (post and answer.status_code != 201) or answer.status_code != 200:
             self.last_error = answer.text
             raise BasecampError()
-        return answer
+        return answer.text
 
     def get_last_error(self):
         return self.last_error
