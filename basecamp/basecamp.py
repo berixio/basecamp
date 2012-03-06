@@ -47,16 +47,18 @@ class Basecamp():
         if isinstance(data, ET._ElementInterface):
             data = ET.tostring(data)
         url = self.baseURL + path
+        headers = {'content-type': 'application/xml'}
         if post:
-            answer = requests.post(url, data, auth=self.auth)
+            answer = requests.post(url, data, auth=self.auth, headers=headers)
         elif put:
-            answer =  requests.put(url, data, auth=self.auth)
+            answer =  requests.put(url, data, auth=self.auth, headers=headers)
         elif delete:
-            answer = requests.delete(url, auth=self.auth)
+            answer = requests.delete(url, auth=self.auth, headers=headers)
         else:
             answer = requests.get(url, auth=self.auth)
         
-        if (post and answer.status_code != 201) or answer.status_code != 200:
+        if ( (post and answer.status_code != 201) or 
+                (not post and answer.status_code != 200) ):
             self.last_error = answer.text
             raise BasecampError()
         return answer.text
@@ -232,8 +234,7 @@ class Basecamp():
         #ET.SubElement(post, 'extended-body').text = str(extended_body)
         #if bool(use_textile):
         #    ET.SubElement(post, 'use-textile').text = '1'
-        if bool(private):
-            ET.SubElement(post, 'private').text = '1'
+        ET.SubElement(post, 'private').text = '1' if private else '0'
         return post
 
     def create_message(self, project_id, category_id, title, body,
