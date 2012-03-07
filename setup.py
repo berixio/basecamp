@@ -8,19 +8,21 @@ from setuptools import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+required = ['elementtree>=0.0.7',
+        'requests>=0.10.6',]
+
 setup(
     name = 'basecamp',
-    version = '0.0.1',
+    version = '0.0.2',
     author = 'Matias Saguir',
     author_email = 'mativs@gmail.com',
-    description = ('Almost complete warapper around the Basecamp API. It is '
-                  'written in Python and based upon the excellent ElementTree '
-                  'package. Forked from the project '
-                  'https://github.com/qpleple/basecamp-python-client'),
+    description = ('Almost complete warapper around the Basecamp API. '
+                  ),
     license = "MIT",
     keywords = "basecamp api",
     url = 'https://github.com/nowherefarm/basecamp',
     packages=['basecamp'],
+    install_requires=required,
     long_description=read('README'),
     classifiers=[
         'Development Status :: 3 - Alpha',

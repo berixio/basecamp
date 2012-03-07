@@ -51,3 +51,5 @@ man
 # Nose
 .noseids
 
+# Setup
+*.egg-info
