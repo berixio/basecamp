@@ -6,8 +6,9 @@ Description
 This module provides an (almost) complete wrapper around the Basecamp API
 (http://developer.37signals.com/basecamp/). It is written in Python and 
 based upon the excellent ElementTree package 
-(http://effbot.org/zone/element-index.htm).
+(http://effbot.org/zone/element-index.htm). 
 
+Licended under the MIT License
 
 Usage
 -----
@@ -29,7 +30,7 @@ for item in items:
 
 Original Code
 -------------
-This code is built from the code of Quentin Pleplé (http://qpleple.com/) forked from github at (https://github.com/qpleple/basecamp-python-client)
+This code is built from the code of Quentin Pleplé (http://qpleple.com/) forked from github at (https://github.com/qpleple/basecamp-python-client) 
 
 Which code is built from the code of Jochen Kupperschmidt <webmaster@nwsnet.de> (see http://homework.nwsnet.de/products/3cd4) under the MIT Licence.
 
