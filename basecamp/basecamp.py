@@ -32,7 +32,6 @@ class Basecamp():
         if ( (post and answer.status_code != 201) or 
                 (not post and answer.status_code != 200) ):
             self.last_error = answer.text
-            print answer.status_code
             raise BasecampError()
         return answer.text
 
