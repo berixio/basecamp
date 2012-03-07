@@ -26,7 +26,7 @@ setup(
     url = 'https://github.com/nowherefarm/basecamp',
     packages=['basecamp'],
     install_requires=required,
-    long_description=read('README'),
+    long_description=read('README.md'),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
