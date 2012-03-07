@@ -33,7 +33,7 @@ setup(
     url = 'https://github.com/nowherefarm/basecamp',
     packages=['basecamp'],
     install_requires=required,
-    long_description=read('README.rst'),
+    long_description=read('README.md'),
     include_package_data = True,
     classifiers=[
         'Development Status :: 3 - Alpha',
