@@ -1,4 +1,7 @@
 import os
+import basecamp
+import sys
+
 try:
     from setuptools import setup
 except ImportError:
@@ -11,12 +14,16 @@ except ImportError:
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist bdist_egg upload')
+    sys.exit()
+            
 required = ['elementtree>=0.0.7',
         'requests>=0.10.6',]
 
 setup(
     name = 'basecamp',
-    version = '0.0.2',
+    version = basecamp.__version__,
     author = 'Matias Saguir',
     author_email = 'mativs@gmail.com',
     description = ('Almost complete warapper around the Basecamp API. '
@@ -26,7 +33,8 @@ setup(
     url = 'https://github.com/nowherefarm/basecamp',
     packages=['basecamp'],
     install_requires=required,
-    long_description=read('README.md'),
+    long_description=read('README.rst'),
+    include_package_data = True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

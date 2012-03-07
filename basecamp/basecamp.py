@@ -1,28 +1,3 @@
-"""
-This module provides an (almost) complete wrapper around the Basecamp API
-(http://developer.37signals.com/basecamp/). It is written in Python and 
-based upon the excellent ElementTree package 
-(http://effbot.org/zone/element-index.htm).
-
-Usage:
-
-    # Import ElementTree and the Basecamp wrapper module.
-    import elementtree.ElementTree as ET
-    from basecamp import Basecamp
-
-    bc = Basecamp('https://example.basecamphq.com', 'API_KEY')
-
-    # Fetch one todo list from its ID
-    xml = bc.todo_list(14499317)
-    items = ET.fromstring(xml).findall('todo-items/todo-item')
-
-    # Let's use the ElementTree API to access data via path expressions:
-    for item in items:
-        print item.find("content").text
-
-    # See the ElementTree website for more information on how to use it.
-"""
-
 import requests
 import elementtree.ElementTree as ET
 

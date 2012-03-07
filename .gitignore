@@ -42,6 +42,7 @@ bin
 build
 include
 lib
+dist
 local
 share
 man
@@ -53,3 +54,4 @@ man
 
 # Setup
 *.egg-info
+
