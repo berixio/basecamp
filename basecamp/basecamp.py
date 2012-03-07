@@ -51,7 +51,9 @@ class Basecamp():
         if post:
             answer = requests.post(url, data, auth=self.auth, headers=headers)
         elif put:
-            answer =  requests.put(url, data, auth=self.auth, headers=headers)
+            if not data:
+                headers['content-length'] = '0'
+            answer = requests.put(url, data, auth=self.auth,headers=headers)
         elif delete:
             answer = requests.delete(url, auth=self.auth, headers=headers)
         else:
@@ -60,6 +62,7 @@ class Basecamp():
         if ( (post and answer.status_code != 201) or 
                 (not post and answer.status_code != 200) ):
             self.last_error = answer.text
+            print answer.status_code
             raise BasecampError()
         return answer.text
 
@@ -346,7 +349,7 @@ class Basecamp():
         Delete the comment with the given id.
         """
         path = '/comments/%u.xml' % comment_id
-        return self._request(path)
+        return self._request(path, delete=True)
 
     # ---------------------------------------------------------------- #
     # Lists
@@ -391,18 +394,18 @@ class Basecamp():
         explicitly, or by giving it a list template id to base the new list
         off of.
         """
-        path = '/projects/%u/todo_list.xml' % project_id
+        path = '/projects/%u/todo_lists.xml' % project_id
         req = ET.Element('todo-list')
         if milestone_id is not None:
-            ET.SubElement('milestone-id').text = str(milestone_id)
+            ET.SubElement(req, 'milestone-id').text = str(milestone_id)
         if private is not None:
-            ET.SubElement('private').text = str(bool(private)).lower()
-        ET.SubElement('tracked').text = str(bool(tracked)).lower()
+            ET.SubElement(req, 'private').text = str(bool(private)).lower()
+        ET.SubElement(req, 'tracked').text = str(bool(tracked)).lower()
         if name is not None:
-            ET.SubElement('name').text = str(name)
-            ET.SubElement('description').text = str(description)
+            ET.SubElement(req, 'name').text = str(name)
+            ET.SubElement(req, 'description').text = str(description)
         if template_id is not None:
-            ET.SubElement('todo-list-template-id').text = str(int(template_id))
+            ET.SubElement(req, 'todo-list-template-id').text = str(int(template_id))
         return self._request(path, req, post=True)
 
     def update_todo_list(self, list_id, name, description, milestone_id=None,
@@ -419,7 +422,7 @@ class Basecamp():
         if private is not None:
             ET.SubElement(req, 'private').text = str(bool(private)).lower()
         if tracked is not None:
-            ET.SubElement(req_, 'tracked').text = str(bool(tracked)).lower()
+            ET.SubElement(req, 'tracked').text = str(bool(tracked)).lower()
         return self._request(path, req, put=True)
 
     def delete_todo_list(self, list_id):
@@ -466,7 +469,7 @@ class Basecamp():
         uncompleted, this does nothing.
         """
         path = '/todo_items/%u/uncomplete.xml' % item_id
-        return self._request(path)
+        return self._request(path, put=True)
 
     def create_todo_item(self, list_id, content, party_id=None, notify=False,
             due_at=None):
@@ -509,5 +512,5 @@ class Basecamp():
         Deletes the specified item, removing it from its parent list.
         """
         path = '/todo_items/%u.xml' % item_id
-        return self._request(path)
+        return self._request(path, delete=True)
 
