@@ -1,11 +1,8 @@
 """
 This module provides an (almost) complete wrapper around the Basecamp API
-(http://www.basecamphq.com/api/). It is written in Python and based upon the
-excellent ElementTree package (http://effbot.org/zone/element-index.htm).
-Requests will be made as XML, not YAML. Responses will be XML, too.
-
-Make sure to allow access to the API (Dashboard > Account > Basecamp API) for
-your projects.
+(http://developer.37signals.com/basecamp/). It is written in Python and 
+based upon the excellent ElementTree package 
+(http://effbot.org/zone/element-index.htm).
 
 Usage:
 
@@ -14,8 +11,6 @@ Usage:
     from basecamp import Basecamp
 
     bc = Basecamp('https://example.basecamphq.com', 'API_KEY')
-    # or 
-    # bc = Basecamp('https://example.basecamphq.com', 'user', 'password')
 
     # Fetch one todo list from its ID
     xml = bc.todo_list(14499317)
@@ -36,12 +31,12 @@ class BasecampError(Exception):
 
 class Basecamp():
 
-    def __init__(self, url, username, password = "X"):
+    def __init__(self, url, apikey):
         self.baseURL = url
         if self.baseURL[-1] == '/':
             self.baseURL = self.baseURL[:-1]
         
-        self.auth = (username, password)
+        self.auth = (apikey, 'X')
         
     def _request(self, path, data=None, put=False, post=False, delete=False, get=False):
         if isinstance(data, ET._ElementInterface):
