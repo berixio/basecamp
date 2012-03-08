@@ -323,7 +323,7 @@ class Basecamp():
     # ---------------------------------------------------------------- #
     # Lists
 
-    def todo_lists(self):
+    def todo_lists(self, responsable_party=''):
         """
         Returns a list of todo-list records, with todo-item records that 
         are assigned to the given "responsible party". If no responsible 
@@ -333,7 +333,7 @@ class Basecamp():
         (for unassigned items), a person-id, or a company-id prefixed by 
         a "c" (e.g., c1234).
         """
-        path = '/todo_lists.xml' 
+        path = '/todo_lists.xml?responsible_party=%u' % responsable_party
         return self._request(path)
 
     def todo_lists_per_project(self, project_id, filter):
