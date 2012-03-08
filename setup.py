@@ -1,5 +1,4 @@
 import os
-import basecamp
 import sys
 
 try:
@@ -23,7 +22,7 @@ required = ['elementtree>=0.0.7',
 
 setup(
     name = 'basecamp',
-    version = basecamp.__version__,
+    version = '0.0.9',
     author = 'Matias Saguir',
     author_email = 'mativs@gmail.com',
     description = ('Almost complete warapper around the Basecamp API. '
