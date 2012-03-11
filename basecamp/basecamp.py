@@ -483,3 +483,80 @@ class Basecamp():
         path = '/todo_items/%u.xml' % item_id
         return self._request(path, delete=True)
 
+    # ---------------------------------------------------------------- #
+    # Time Entry 
+
+    def time_entries_per_project(self, project_id, page=None):
+        """
+        Returns a page full of time entries for the given project, 
+        in descending order by date. Each page contains up to 50 time entry 
+        records. To select a different page of data, set the "page" query 
+        parameter to a value greater than zero. The X-Records HTTP header 
+        will be set to the total number of time entries in the project, 
+        X-Pages will be set to the total number of pages, and X-Page will be 
+        set to the current page.
+        """
+        if page:
+            path = '/projects/%u/time_entries.xml?page=%u' % (project_id, page)
+        else: 
+            path = '/projects/%u/time_entries.xml' % project_id
+        return self._request(path)
+
+    def time_entries_per_todo_item(self, todo_item_id):
+        """
+        Returns all time entries associated with the given todo item, 
+        in descending order by date.
+        """
+        path = '/todo_items/%u/time_entries.xml' % todo_item_id
+        return self._request(path)
+
+    def time_entry(self, time_entry_id):
+        """
+        Retrieves a single time-entry record, given its integer ID.
+        """
+        path = '/time_entries/%u.xml' % time_entry_id
+        return self._request(path)
+
+    def create_time_entry(self, description, hours, person_id, 
+            entry_date=None, project_id=None, todo_item_id=None):
+        """
+        Creates a new time entry for the given project. If todo_item_id is
+        not None creates a new time entry for the given todo item.
+        """
+        if todo_item_id:
+            path = '/todo_items/%u/time_entries.xml' % todo_item_id 
+        elif projct_id:
+            path = '/projects/%u/time_entries.xml' % project_id_id
+        else: 
+            return ""
+        req = ET.Element('time-entry')
+        ET.SubElement(req, 'description').text = str(description)
+        ET.SubElement(req, 'person-id').text = str(person_id)
+        ET.SubElement(req, 'hours').text = str(hours)
+        if entry_date:
+            ET.SubElement(req, 'date').text = str(entry_date)
+        return self._request(path, req, post=True)
+
+    def update_time_entry(self, time_entry_id, description, hours, 
+            person_id, entry_date=None, todo_item_id=None):
+        """
+        Updates the given time-entry record with the data given.
+        """
+        path = '/time_entries/%u.xml' % time_entry_id
+        req = ET.Element('time-entry')
+        ET.SubElement(req, 'description').text = str(description)
+        ET.SubElement(req, 'person-id').text = str(person_id)
+        ET.SubElement(req, 'hours').text = str(hours)
+        if entry_date:
+            ET.SubElement(req, 'date').text = str(entry_date)
+        if todo_item_id:
+            ET.SubElement(req, 'todo-item-id').text = str(todo_item_id)
+        return self._request(path, req, put=True)
+
+    def delete_todo_item(self, time_entry_id):
+        """
+        Destroys the given time entry record.
+        """
+        path = '/time_entries/%u.xml' % item_id
+        return self._request(path, delete=True)
+
