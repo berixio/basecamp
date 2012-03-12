@@ -525,7 +525,7 @@ class Basecamp():
         """
         if todo_item_id:
             path = '/todo_items/%u/time_entries.xml' % todo_item_id 
-        elif projct_id:
+        elif project_id:
             path = '/projects/%u/time_entries.xml' % project_id_id
         else: 
             return ""
