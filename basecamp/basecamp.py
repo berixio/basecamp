@@ -13,7 +13,8 @@ class Basecamp():
         
         self.auth = (apikey, 'X')
         
-    def _request(self, path, data=None, put=False, post=False, delete=False, get=False):
+    def _request(self, path, data=None, put=False, post=False, delete=False,
+                 get=False, return_response=True):
         if isinstance(data, ET._ElementInterface):
             data = ET.tostring(data)
         url = self.baseURL + path
@@ -33,6 +34,8 @@ class Basecamp():
                 (not post and answer.status_code != 200) ):
             self.last_error = answer.text
             raise BasecampError()
+        if return_response:
+            return answer
         return answer.text
 
     def get_last_error(self):
@@ -237,7 +240,7 @@ class Basecamp():
         ##        = str(attachment['content_type'])
         ##    ET.SubElement(file_, 'original-filename').text \
         ##        = str(attachment['original_filename'])
-        return self._request(path, req, post=True)
+        return self._request(path, req, post=True, return_response=True)
 
     def update_message(self, message_id, category_id, title, body,
         private=False, notify=None):
@@ -299,7 +302,7 @@ class Basecamp():
         #ET.SubElement(comment, 'post-id').text = str(int(post_id))
         ET.SubElement(req, 'body').text = unicode(body)
         #ET.SubElement(comment, 'body').text = str(body)
-        return self._request(path, req, post=True)
+        return self._request(path, req, post=True, return_response=True)
 
     def update_comment(self, comment_id, body):
         """
