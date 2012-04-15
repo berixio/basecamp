@@ -199,8 +199,8 @@ class Basecamp():
         private=False, notify=False):
         post = ET.Element('post')
         ET.SubElement(post, 'category-id').text = str(int(category_id))
-        ET.SubElement(post, 'title').text = str(title)
-        ET.SubElement(post, 'body').text = str(body)
+        ET.SubElement(post, 'title').text = unicode(title)
+        ET.SubElement(post, 'body').text = unicode(body)
         if notify:
             ET.SubElement(post, 'notify-about-changes').text = '1'
         #ET.SubElement(post, 'extended-body').text = str(extended_body)
@@ -297,7 +297,7 @@ class Basecamp():
         req = ET.Element('comment')
         #comment = ET.SubElement(req, 'comment')
         #ET.SubElement(comment, 'post-id').text = str(int(post_id))
-        ET.SubElement(req, 'body').text = str(body)
+        ET.SubElement(req, 'body').text = unicode(body)
         #ET.SubElement(comment, 'body').text = str(body)
         return self._request(path, req, post=True)
 
@@ -310,7 +310,7 @@ class Basecamp():
         req = ET.Element('request')
         #ET.SubElement(req, 'comment_id').text = str(int(comment_id))
         comment = ET.SubElement(req, 'comment')
-        ET.SubElement(comment, 'body').text = str(body)
+        ET.SubElement(comment, 'body').text = unicode(body)
         return self._request(path, req, put=True)
 
     def delete_comment(self, comment_id):
@@ -371,8 +371,8 @@ class Basecamp():
             ET.SubElement(req, 'private').text = str(bool(private)).lower()
         ET.SubElement(req, 'tracked').text = str(bool(tracked)).lower()
         if name is not None:
-            ET.SubElement(req, 'name').text = str(name)
-            ET.SubElement(req, 'description').text = str(description)
+            ET.SubElement(req, 'name').text = unicode(name)
+            ET.SubElement(req, 'description').text = unicode(description)
         if template_id is not None:
             ET.SubElement(req, 'todo-list-template-id').text = str(int(template_id))
         return self._request(path, req, post=True)
@@ -384,8 +384,8 @@ class Basecamp():
         """
         path = '/todo_lists/%u.xml' % list_id
         req = ET.Element('todo-list')
-        ET.SubElement(req, 'name').text = str(name)
-        ET.SubElement(req, 'description').text = str(description)
+        ET.SubElement(req, 'name').text = unicode(name)
+        ET.SubElement(req, 'description').text = unicode(description)
         if milestone_id is not None:
             ET.SubElement(req, 'milestone_id').text = str(int(milestone_id))
         if private is not None:
@@ -455,7 +455,7 @@ class Basecamp():
         """
         path = '/todo_lists/%u/todo_items.xml' % list_id
         req = ET.Element('todo-item')
-        ET.SubElement(req, 'content').text = str(content)
+        ET.SubElement(req, 'content').text = unicode(content)
         if party_id :
             ET.SubElement(req, 'responsible-party').text = str(party_id)
             ET.SubElement(req, 'notify').text = str(bool(notify)).lower()
@@ -470,7 +470,7 @@ class Basecamp():
         """
         path = '/todo_items/%u.xml' % item_id
         req = ET.Element('todo-item')
-        ET.SubElement(req, 'content').text = str(content)
+        ET.SubElement(req, 'content').text = unicode(content)
         if party_id is not None:
             ET.SubElement(req, 'responsible-party').text = str(party_id)
             ET.SubElement(req, 'notify').text = str(bool(notify)).lower()
@@ -530,7 +530,7 @@ class Basecamp():
         else: 
             return ""
         req = ET.Element('time-entry')
-        ET.SubElement(req, 'description').text = str(description)
+        ET.SubElement(req, 'description').text = unicode(description)
         ET.SubElement(req, 'person-id').text = str(person_id)
         ET.SubElement(req, 'hours').text = str(hours)
         if entry_date:
@@ -544,7 +544,7 @@ class Basecamp():
         """
         path = '/time_entries/%u.xml' % time_entry_id
         req = ET.Element('time-entry')
-        ET.SubElement(req, 'description').text = str(description)
+        ET.SubElement(req, 'description').text = unicode(description)
         ET.SubElement(req, 'person-id').text = str(person_id)
         ET.SubElement(req, 'hours').text = str(hours)
         if entry_date:
