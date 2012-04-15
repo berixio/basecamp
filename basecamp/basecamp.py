@@ -14,7 +14,7 @@ class Basecamp():
         self.auth = (apikey, 'X')
         
     def _request(self, path, data=None, put=False, post=False, delete=False,
-                 get=False, return_response=True):
+                 get=False, return_response=False):
         if isinstance(data, ET._ElementInterface):
             data = ET.tostring(data)
         url = self.baseURL + path
