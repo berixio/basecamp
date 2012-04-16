@@ -201,7 +201,7 @@ class Basecamp():
     def _create_message_post_elem(self, category_id, title, body,
         private=False, notify=False):
         post = ET.Element('post')
-        ET.SubElement(post, 'category-id').text = str(int(category_id))
+        ET.SubElement(post, 'category-id').text = str(int(category_id) if category_id else '')
         ET.SubElement(post, 'title').text = unicode(title)
         ET.SubElement(post, 'body').text = unicode(body)
         if notify:
