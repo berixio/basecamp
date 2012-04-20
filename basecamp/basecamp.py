@@ -156,11 +156,12 @@ class Basecamp():
     # ---------------------------------------------------------------- #
     # Messages
 
-    def messages_per_project(self, project_id):
+    def messages_per_project(self, project_id, offset=0):
         """
-        This will return the 25 most recent messages in the given project. 
+        This will return the 25 most recent messages in the given project
+        skipping a number of messages defined by offset.
         """
-        path = '/projects/%u/posts.xml' % project_id
+        path = '/projects/%u/posts.xml?n=%s' % (project_id, offset)
         return self._request(path)
 
     def messages_per_category(self, project_id, category_id):
