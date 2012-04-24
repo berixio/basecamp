@@ -10,27 +10,29 @@ class Basecamp():
         self.baseURL = url
         if self.baseURL[-1] == '/':
             self.baseURL = self.baseURL[:-1]
-        
-        self.auth = (apikey, 'X')
-        
+
+        self.apikey = apikey
+
     def _request(self, path, data=None, put=False, post=False, delete=False,
                  get=False, return_response=False):
         if isinstance(data, ET._ElementInterface):
             data = ET.tostring(data)
         url = self.baseURL + path
-        headers = {'content-type': 'application/xml'}
+        headers = {'Content-Type': 'application/xml',
+                   'Authorization': 'Bearer %s' % self.apikey}
+        print headers
         if post:
-            answer = requests.post(url, data, auth=self.auth, headers=headers)
+            answer = requests.post(url, data, headers=headers)
         elif put:
             if not data:
                 headers['content-length'] = '0'
-            answer = requests.put(url, data, auth=self.auth,headers=headers)
+            answer = requests.put(url, data, headers=headers)
         elif delete:
-            answer = requests.delete(url, auth=self.auth, headers=headers)
+            answer = requests.delete(url, headers=headers)
         else:
-            answer = requests.get(url, auth=self.auth)
-        
-        if ( (post and answer.status_code != 201) or 
+            answer = requests.get(url, headers=headers)
+
+        if ( (post and answer.status_code != 201) or
                 (not post and answer.status_code != 200) ):
             self.last_error = answer.text
             raise BasecampError()
