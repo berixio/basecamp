@@ -569,3 +569,39 @@ class Basecamp():
         """
         path = '/time_entries/%u.xml' % item_id
         return self._request(path, delete=True)
+
+    # ---------------------------------------------------------------- #
+    # Calendar Entries
+    def calendar_entries(self, project_id):
+        path = '/projects/%u/calendar_entries.xml' % project_id
+        return self._request(path)
+
+    def milestones(self, project_id, find='all'):
+        path = '/projects/%u/calendar_entries/milestones.xml?find=%s' % (project_id, find)
+        return self._request(path)
+
+    def calendar_events(self, project_id):
+        path = '/projects/%u/calendar_entries/calendar_events.xml' % (project_id)
+        return self._request(path)
+
+    def create_calendar_entry(self, project_id):
+        raise NotImplemented
+
+    def update_calendar_entry(self, project_id, calendar_entry_id):
+        raise NotImplemented
+
+    def calendar_entry(self, project_id, calendar_entry_id):
+        path='/projects/%u/calendar_entries/%u.xml' % (project_id, calendar_entry_id)
+        return self._request(path)
+
+    def delete_calendar_entry(self, project_id, calendar_entry_id):
+        path = '/projects/%u/calendar_entries/%u.xml' % (project_id, calendar_entry_id)
+        return self._request(path, delete=True)
+
+    def complete_calendar_entry(self, project_id, calendar_entry_id):
+        path = '/projects/%u/calendar_entries/%u/complete.xml' % (project_id, calendar_entry_id)
+        return self._request(path, put=True)
+
+    def uncomplete_calendar_entry(self, project_id, calendar_entry_id):
+        path = '/projects/%u/calendar_entries/%u/complete.xml' % (project_id, calendar_entry_id)
+        return self._request(path, put=True)
