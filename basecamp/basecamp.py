@@ -20,7 +20,6 @@ class Basecamp():
         url = self.baseURL + path
         headers = {'Content-Type': 'application/xml',
                    'Authorization': 'Bearer %s' % self.apikey}
-        print headers
         if post:
             answer = requests.post(url, data, headers=headers)
         elif put:
