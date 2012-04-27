@@ -22,7 +22,7 @@ required = ['elementtree>=0.0.7',
 
 setup(
     name = 'basecamp',
-    version = '0.0.14',
+    version = '0.0.15',
     author = 'Matias Saguir',
     author_email = 'mativs@gmail.com',
     description = ('Almost complete warapper around the Basecamp API. '
