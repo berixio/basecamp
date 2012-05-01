@@ -466,7 +466,7 @@ class Basecamp():
             ET.SubElement(req, 'notify').text = str(bool(notify)).lower()
         if due_at:
             ET.SubElement(req, 'due-at').text = str(due_at)
-        return self._request(path, req, post=True)
+        return self._request(path, req, post=True, return_response=True)
 
     def update_todo_item(self, item_id, content, party_id=None, notify=False):
         """
