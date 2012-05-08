@@ -1,5 +1,8 @@
 import requests
-import elementtree.ElementTree as ET
+try:
+    import elementtree.ElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 class BasecampError(Exception):
     pass
@@ -10,9 +13,9 @@ class Basecamp():
         self.baseURL = url
         if self.baseURL[-1] == '/':
             self.baseURL = self.baseURL[:-1]
-        
+
         self.auth = (apikey, 'X')
-        
+
     def _request(self, path, data=None, put=False, post=False, delete=False, get=False):
         if isinstance(data, ET._ElementInterface):
             data = ET.tostring(data)
@@ -28,12 +31,19 @@ class Basecamp():
             answer = requests.delete(url, auth=self.auth, headers=headers)
         else:
             answer = requests.get(url, auth=self.auth)
-        
-        if ( (post and answer.status_code != 201) or 
+
+        if ( (post and answer.status_code != 201) or
                 (not post and answer.status_code != 200) ):
-            self.last_error = answer.text
+            self.last_error = self._read_answer(answer)
             raise BasecampError()
-        return answer.text
+        return self._read_answer(answer)
+
+    def _read_answer(self, answer):
+        # compatible with python2.7
+        try:
+            return answer.text
+        except AttributeError:
+            return answer.read()
 
     def get_last_error(self):
         return self.last_error
@@ -47,25 +57,25 @@ class Basecamp():
         """
         path = '/companies/%u.xml' % company_id
         return self._request(path)
-    
+
     def companies(self):
         """
-        This will return a list of all companies visible to the 
+        This will return a list of all companies visible to the
         requesting user.
         """
-        path = '/companies.xml' 
+        path = '/companies.xml'
         return self._request(path)
 
     def companies_per_project(self, project_id):
         """
-        This will return a list of all companies associated with the gieven 
+        This will return a list of all companies associated with the gieven
         project.
         """
         path = '/companies/%u/companies.xml' % project_id
         return self._request(path)
 
     # ---------------------------------------------------------------- #
-    # Categories 
+    # Categories
 
     def file_categories(self, project_id):
         """
@@ -82,9 +92,9 @@ class Basecamp():
         """
         path = '/projects/%u/categories.xml?type=post' % project_id
         return self._request(path)
-    
+
     # ---------------------------------------------------------------- #
-    # People 
+    # People
 
     def me(self):
         """
@@ -96,7 +106,7 @@ class Basecamp():
     def people(self):
         """
         This will return all of the people visible to (and including) the
-        requesting user.. 
+        requesting user..
         """
         path = '/people.xml'
         return self._request(path)
@@ -104,14 +114,14 @@ class Basecamp():
 
     def people_per_company(self, company_id):
         """
-        This will return all of the people in the given company. 
+        This will return all of the people in the given company.
         """
         path = '/companies/%u/people.xml' % company_id
         return self._request(path)
 
     def people_per_project(self, project_id):
         """
-        This will return all of the people in the given project. 
+        This will return all of the people in the given project.
         """
         path = '/projects/%u/people.xml' % project_id
         return self._request(path)
@@ -124,7 +134,7 @@ class Basecamp():
         return self._request(path)
 
     # ---------------------------------------------------------------- #
-    # Projects 
+    # Projects
 
     def projects(self):
         """
@@ -136,7 +146,7 @@ class Basecamp():
 
     def project_count(self):
         """
-        This will return a count of all projects, by project status. 
+        This will return a count of all projects, by project status.
         If there are no projects with a particular status, that status entry
         will be omitted from the report
         """
@@ -155,14 +165,14 @@ class Basecamp():
 
     def messages_per_project(self, project_id):
         """
-        This will return the 25 most recent messages in the given project. 
+        This will return the 25 most recent messages in the given project.
         """
         path = '/projects/%u/posts.xml' % project_id
         return self._request(path)
 
     def messages_per_category(self, project_id, category_id):
         """
-        This will return the 25 most recent messages in the given project 
+        This will return the 25 most recent messages in the given project
         for the given category.
         """
         path = '/projects/%u/cat/%s/posts.xml' % (project_id, category_id)
@@ -170,8 +180,8 @@ class Basecamp():
 
     def messages_archived(self, project_id):
         """
-        This will return a summary for each message in the given project. 
-        Note that a summary record includes only a few bits of 
+        This will return a summary for each message in the given project.
+        Note that a summary record includes only a few bits of
         information about a messag, not the complete record.
         """
         path = '/projects/%u/posts/archive.xml' % project_id
@@ -180,8 +190,8 @@ class Basecamp():
     def messages_archived_per_category(self, project_id, category_id):
         """
         This will return a summary for each message in the given project
-        for the given category. Note that a summary record includes 
-        only a few bits of information about a messag, 
+        for the given category. Note that a summary record includes
+        only a few bits of information about a messag,
         not the complete record.
         """
         path = '/projects/%u/cat/%s/posts/archive.xml' % (
@@ -269,11 +279,11 @@ class Basecamp():
 
     def comments(self, resource, resource_id):
         """
-        Return a list of the 50 most recent comments associated with 
-        the specified resource, where the resource named in the URL 
-        can be one of posts, milestones, or todo_items. For example, 
-        to fetch the most recent comments for the todo item with an 
-        id of 1, you would use the path: /todo_items/1/comments.xml. 
+        Return a list of the 50 most recent comments associated with
+        the specified resource, where the resource named in the URL
+        can be one of posts, milestones, or todo_items. For example,
+        to fetch the most recent comments for the todo item with an
+        id of 1, you would use the path: /todo_items/1/comments.xml.
         """
         path = '/%s/%u/comments.xml' % (resource, resource_id)
         return self._request(path)
@@ -287,9 +297,9 @@ class Basecamp():
 
     def create_comment(self, resource, resource_id, body):
         """
-        Create a new comment, associating it with a specific resource, 
-        where the resource named in the URL can be one of posts, milestones, 
-        or todo_items. For example, to create a comment for the milestone 
+        Create a new comment, associating it with a specific resource,
+        where the resource named in the URL can be one of posts, milestones,
+        or todo_items. For example, to create a comment for the milestone
         with an ID of 1, you would use the path: /milestones/1/comments.xml.
         """
         path = '/%s/%u/comments.xml' % (resource, resource_id)
@@ -325,12 +335,12 @@ class Basecamp():
 
     def todo_lists(self, responsable_party=''):
         """
-        Returns a list of todo-list records, with todo-item records that 
-        are assigned to the given "responsible party". If no responsible 
-        party is given, the current user is assumed to be the responsible 
-        party. The responsible party may be changed by setting the 
-        "responsible_party" query parameter to a blank string 
-        (for unassigned items), a person-id, or a company-id prefixed by 
+        Returns a list of todo-list records, with todo-item records that
+        are assigned to the given "responsible party". If no responsible
+        party is given, the current user is assumed to be the responsible
+        party. The responsible party may be changed by setting the
+        "responsible_party" query parameter to a blank string
+        (for unassigned items), a person-id, or a company-id prefixed by
         a "c" (e.g., c1234).
         """
         path = '/todo_lists.xml?responsible_party=%u' % responsable_party
@@ -338,12 +348,12 @@ class Basecamp():
 
     def todo_lists_per_project(self, project_id, filter):
         """
-        Returns a list of todo-list records that are in the given project. 
-        By default, all lists are returned, but you can filter the result 
-        by giving the "filter" query parameter, set to "all" (the default), 
-        "pending" (for lists with uncompleted items), and "finished" 
-        (for lists that have no uncompleted items). The lists will be returned 
-        in priority order, as determined by their ordering. 
+        Returns a list of todo-list records that are in the given project.
+        By default, all lists are returned, but you can filter the result
+        by giving the "filter" query parameter, set to "all" (the default),
+        "pending" (for lists with uncompleted items), and "finished"
+        (for lists that have no uncompleted items). The lists will be returned
+        in priority order, as determined by their ordering.
         (See the "reorder lists" action.)
         """
         path = '/projects/%u/todo_lists.xml?filter=%s' % (project_id, filter)
@@ -408,10 +418,10 @@ class Basecamp():
 
     def items(self, list_id):
         """
-        Returns all todo item records for a single todo list. This is almost 
-        the same as the "Get list" action, except it does not return any 
-        information about the list itself. The items are returned in priority 
-        order, as defined by how they were ordered either in the web UI, or 
+        Returns all todo item records for a single todo list. This is almost
+        the same as the "Get list" action, except it does not return any
+        information about the list itself. The items are returned in priority
+        order, as defined by how they were ordered either in the web UI, or
         via the "Reorder items" action.
         """
         path = '/todo_lists/%u/todo_items.xml' % list_id
@@ -443,14 +453,14 @@ class Basecamp():
     def create_todo_item(self, list_id, content, party_id=None, notify=False,
             due_at=None):
         """
-        Creates a new todo item record for the given list. The new record 
-        begins its life in the "uncompleted" state. (See the "Complete" and 
-        "Uncomplete" actions.) It is added at the bottom of the given list. 
-        If a person is responsible for the item, give their id as the party_id 
-        value. If a company is responsible, prefix their company id with a 'c' 
-        and use that as the party_id value. If the item has a person as the 
-        responsible party, you can also use the "notify" key to indicate 
-        whether an email should be sent to that person to tell them about the 
+        Creates a new todo item record for the given list. The new record
+        begins its life in the "uncompleted" state. (See the "Complete" and
+        "Uncomplete" actions.) It is added at the bottom of the given list.
+        If a person is responsible for the item, give their id as the party_id
+        value. If a company is responsible, prefix their company id with a 'c'
+        and use that as the party_id value. If the item has a person as the
+        responsible party, you can also use the "notify" key to indicate
+        whether an email should be sent to that person to tell them about the
         assignment.
         """
         path = '/todo_lists/%u/todo_items.xml' % list_id
@@ -484,27 +494,27 @@ class Basecamp():
         return self._request(path, delete=True)
 
     # ---------------------------------------------------------------- #
-    # Time Entry 
+    # Time Entry
 
     def time_entries_per_project(self, project_id, page=None):
         """
-        Returns a page full of time entries for the given project, 
-        in descending order by date. Each page contains up to 50 time entry 
-        records. To select a different page of data, set the "page" query 
-        parameter to a value greater than zero. The X-Records HTTP header 
-        will be set to the total number of time entries in the project, 
-        X-Pages will be set to the total number of pages, and X-Page will be 
+        Returns a page full of time entries for the given project,
+        in descending order by date. Each page contains up to 50 time entry
+        records. To select a different page of data, set the "page" query
+        parameter to a value greater than zero. The X-Records HTTP header
+        will be set to the total number of time entries in the project,
+        X-Pages will be set to the total number of pages, and X-Page will be
         set to the current page.
         """
         if page:
             path = '/projects/%u/time_entries.xml?page=%u' % (project_id, page)
-        else: 
+        else:
             path = '/projects/%u/time_entries.xml' % project_id
         return self._request(path)
 
     def time_entries_per_todo_item(self, todo_item_id):
         """
-        Returns all time entries associated with the given todo item, 
+        Returns all time entries associated with the given todo item,
         in descending order by date.
         """
         path = '/todo_items/%u/time_entries.xml' % todo_item_id
@@ -517,17 +527,17 @@ class Basecamp():
         path = '/time_entries/%u.xml' % time_entry_id
         return self._request(path)
 
-    def create_time_entry(self, description, hours, person_id, 
+    def create_time_entry(self, description, hours, person_id,
             entry_date=None, project_id=None, todo_item_id=None):
         """
         Creates a new time entry for the given project. If todo_item_id is
         not None creates a new time entry for the given todo item.
         """
         if todo_item_id:
-            path = '/todo_items/%u/time_entries.xml' % todo_item_id 
+            path = '/todo_items/%u/time_entries.xml' % todo_item_id
         elif projct_id:
             path = '/projects/%u/time_entries.xml' % project_id_id
-        else: 
+        else:
             return ""
         req = ET.Element('time-entry')
         ET.SubElement(req, 'description').text = str(description)
@@ -537,7 +547,7 @@ class Basecamp():
             ET.SubElement(req, 'date').text = str(entry_date)
         return self._request(path, req, post=True)
 
-    def update_time_entry(self, time_entry_id, description, hours, 
+    def update_time_entry(self, time_entry_id, description, hours,
             person_id, entry_date=None, todo_item_id=None):
         """
         Updates the given time-entry record with the data given.
@@ -560,3 +570,38 @@ class Basecamp():
         path = '/time_entries/%u.xml' % item_id
         return self._request(path, delete=True)
 
+    # ---------------------------------------------------------------- #
+    # Calendar Entries
+    def calendar_entries(self, project_id):
+        path = '/projects/%u/calendar_entries.xml' % project_id
+        return self._request(path)
+
+    def milestones(self, project_id, find='all'):
+        path = '/projects/%u/calendar_entries/milestones.xml?find=%s' % (project_id, find)
+        return self._request(path)
+
+    def calendar_events(self, project_id):
+        path = '/projects/%u/calendar_entries/calendar_events.xml' % (project_id)
+        return self._request(path)
+
+    def create_calendar_entry(self, project_id):
+        raise NotImplemented
+
+    def update_calendar_entry(self, project_id, calendar_entry_id):
+        raise NotImplemented
+
+    def calendar_entry(self, project_id, calendar_entry_id):
+        path='/projects/%u/calendar_entries/%u.xml' % (project_id, calendar_entry_id)
+        return self._request(path)
+
+    def delete_calendar_entry(self, project_id, calendar_entry_id):
+        path = '/projects/%u/calendar_entries/%u.xml' % (project_id, calendar_entry_id)
+        return self._request(path, delete=True)
+
+    def complete_calendar_entry(self, project_id, calendar_entry_id):
+        path = '/projects/%u/calendar_entries/%u/complete.xml' % (project_id, calendar_entry_id)
+        return self._request(path, put=True)
+
+    def uncomplete_calendar_entry(self, project_id, calendar_entry_id):
+        path = '/projects/%u/calendar_entries/%u/complete.xml' % (project_id, calendar_entry_id)
+        return self._request(path, put=True)
